@@ -1,0 +1,23 @@
+namespace Industrial_AI_Ops.Core.Models;
+
+public class MaintenancePrediction
+{
+    public int Id { get; set; }
+    public int EquipmentId { get; set; }
+    public Equipment Equipment { get; set; } = null!;
+    public DateTime PredictionDate { get; set; }
+    public DateTime PredictedFailureDate { get; set; }
+    public double Confidence { get; set; }
+    public string FailureType { get; set; } = string.Empty;
+    public RiskLevel RiskLevel { get; set; }
+    public string Recommendation { get; set; } = string.Empty;
+    public bool IsAcknowledged { get; set; }
+}
+
+public enum RiskLevel
+{
+    Low,
+    Medium,
+    High,
+    Critical
+}
