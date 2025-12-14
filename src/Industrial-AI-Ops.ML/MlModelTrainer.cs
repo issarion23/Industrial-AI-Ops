@@ -2,6 +2,10 @@ using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Ports;
 using Microsoft.ML;
 using Industrial_AI_Ops.ML.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Industrial_AI_Ops.ML;
 
@@ -33,7 +37,6 @@ public class MlModelTrainer
 
         try
         {
-            // Попытка загрузить существующие модели
             if (ModelsExist())
             {
                 LoadAllModels();
@@ -41,7 +44,6 @@ public class MlModelTrainer
             }
             else
             {
-                // Обучить новые модели локально
                 await TrainAllModelsAsync();
                 _logger.LogInformation("Trained new models locally");
             }
@@ -49,6 +51,7 @@ public class MlModelTrainer
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error initializing models");
+            throw;
         }
     }
     
@@ -61,27 +64,24 @@ public class MlModelTrainer
         SaveAllModels();
     }
     
-     public async Task TrainPumpModelAsync()
+    public async Task TrainPumpModelAsync()
     {
         _logger.LogInformation("Training Pump anomaly detection model locally...");
 
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
 
-        // Получаем данные из базы
         var data = await context.PumpSensorData
             .OrderByDescending(d => d.Timestamp)
             .Take(50000)
             .ToListAsync();
 
-        // Если данных мало, генерируем синтетические
         if (data.Count < 1000)
         {
             _logger.LogWarning("Insufficient data, generating synthetic training data");
             data = GenerateSyntheticPumpData(10000);
         }
 
-        // Конвертируем в ML формат
         var mlData = _mlContext.Data.LoadFromEnumerable(data.Select(d => new PumpMlInput
         {
             SuctionPressure = (float)(d.SuctionPressure ?? 5.0),
@@ -98,7 +98,6 @@ public class MlModelTrainer
             Efficiency = (float)(d.Efficiency ?? 80.0)
         }));
 
-        // Pipeline для обнаружения аномалий (RandomizedPCA - unsupervised)
         var pipeline = _mlContext.Transforms.Concatenate("Features",
                 nameof(PumpMlInput.SuctionPressure),
                 nameof(PumpMlInput.DischargePressure),
@@ -118,13 +117,11 @@ public class MlModelTrainer
                 rank: 10,
                 ensureZeroMean: true));
 
-        // Обучение модели ЛОКАЛЬНО (на сервере TCO)
         _pumpModel = pipeline.Fit(mlData);
-
         _logger.LogInformation("Pump model trained successfully");
     }
 
-    private async Task TrainCompressorModelAsync()
+    public async Task TrainCompressorModelAsync()
     {
         _logger.LogInformation("Training Compressor anomaly detection model locally...");
 
@@ -138,6 +135,7 @@ public class MlModelTrainer
 
         if (data.Count < 1000)
         {
+            _logger.LogWarning("Insufficient data, generating synthetic training data");
             data = GenerateSyntheticCompressorData(10000);
         }
 
@@ -179,7 +177,6 @@ public class MlModelTrainer
                 ensureZeroMean: true));
 
         _compressorModel = pipeline.Fit(mlData);
-
         _logger.LogInformation("Compressor model trained successfully");
     }
     
@@ -197,6 +194,7 @@ public class MlModelTrainer
 
         if (data.Count < 1000)
         {
+            _logger.LogWarning("Insufficient data, generating synthetic training data");
             data = GenerateSyntheticTurbineData(10000);
         }
 
@@ -213,7 +211,8 @@ public class MlModelTrainer
             BearingTemp1 = (float)(d.BearingTemp1 ?? 80.0),
             BearingTemp2 = (float)(d.BearingTemp2 ?? 80.0),
             LubOilPressure = (float)(d.LubOilPressure ?? 4.0),
-            ThermalEfficiency = (float)(d.ThermalEfficiency ?? 32.0)
+            ThermalEfficiency = (float)(d.ThermalEfficiency ?? 32.0),
+            NOxEmission = (float)(d.NOxEmission ?? 50.0)
         }));
 
         var pipeline = _mlContext.Transforms.Concatenate("Features",
@@ -228,7 +227,8 @@ public class MlModelTrainer
                 nameof(TurbineMlInput.BearingTemp1),
                 nameof(TurbineMlInput.BearingTemp2),
                 nameof(TurbineMlInput.LubOilPressure),
-                nameof(TurbineMlInput.ThermalEfficiency))
+                nameof(TurbineMlInput.ThermalEfficiency),
+                nameof(TurbineMlInput.NOxEmission))
             .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(_mlContext.AnomalyDetection.Trainers.RandomizedPca(
                 featureColumnName: "Features",
@@ -236,7 +236,6 @@ public class MlModelTrainer
                 ensureZeroMean: true));
 
         _turbineModel = pipeline.Fit(mlData);
-
         _logger.LogInformation("Turbine model trained successfully");
     }
 
@@ -244,12 +243,9 @@ public class MlModelTrainer
     {
         _logger.LogInformation("Training Maintenance prediction model locally...");
 
-        // Генерируем синтетические данные для обучения предсказания отказов
         var trainingData = GenerateMaintenanceTrainingData(5000);
-
         var mlData = _mlContext.Data.LoadFromEnumerable(trainingData);
 
-        // Regression для предсказания дней до отказа
         var pipeline = _mlContext.Transforms.Concatenate("Features",
                 nameof(MaintenanceInput.HealthScore),
                 nameof(MaintenanceInput.AnomalyScore),
@@ -267,7 +263,6 @@ public class MlModelTrainer
                 learningRate: 0.2));
 
         _maintenanceModel = pipeline.Fit(mlData);
-
         _logger.LogInformation("Maintenance model trained successfully");
 
         await Task.CompletedTask;
@@ -317,7 +312,7 @@ public class MlModelTrainer
     public ITransformer? GetTurbineModel() => _turbineModel;
     public ITransformer? GetMaintenanceModel() => _maintenanceModel;
 
-    // Synthetic data generation
+    // Synthetic Data Generation Methods
     private List<PumpSensorData> GenerateSyntheticPumpData(int count)
     {
         var random = new Random(42);
@@ -347,5 +342,138 @@ public class MlModelTrainer
         }
 
         return data;
+    }
+
+    private List<CompressorSensorData> GenerateSyntheticCompressorData(int count)
+    {
+        var random = new Random(42);
+        var data = new List<CompressorSensorData>();
+
+        for (int i = 0; i < count; i++)
+        {
+            var isAnomaly = random.NextDouble() < 0.1;
+            data.Add(new CompressorSensorData
+            {
+                Id = i,
+                EquipmentId = 1,
+                Timestamp = DateTime.UtcNow.AddHours(-i),
+                InletPressure = 1.5 + random.NextDouble() * 0.5 + (isAnomaly ? random.NextDouble() * 0.8 : 0),
+                OutletPressure = 6.0 + random.NextDouble() * 1.0 + (isAnomaly ? random.NextDouble() * 2.0 : 0),
+                InletTemperature = 30.0 + random.NextDouble() * 10 + (isAnomaly ? random.NextDouble() * 15 : 0),
+                OutletTemperature = 85.0 + random.NextDouble() * 15 + (isAnomaly ? random.NextDouble() * 25 : 0),
+                MassFlowRate = 1000.0 + random.NextDouble() * 200 + (isAnomaly ? random.NextDouble() * 300 : 0),
+                VibrationAxial = 4.0 + random.NextDouble() * 2 + (isAnomaly ? random.NextDouble() * 4 : 0),
+                VibrationRadial = 4.0 + random.NextDouble() * 2 + (isAnomaly ? random.NextDouble() * 4 : 0),
+                BearingTemp1 = 75.0 + random.NextDouble() * 10 + (isAnomaly ? random.NextDouble() * 20 : 0),
+                BearingTemp2 = 75.0 + random.NextDouble() * 10 + (isAnomaly ? random.NextDouble() * 20 : 0),
+                PowerConsumption = 500.0 + random.NextDouble() * 100,
+                Rpm = 3000.0 + random.NextDouble() * 500,
+                LubOilPressure = 3.5 + random.NextDouble() * 0.5 - (isAnomaly ? random.NextDouble() * 1.5 : 0),
+                SurgeMargin = 20.0 + random.NextDouble() * 10 - (isAnomaly ? random.NextDouble() * 15 : 0)
+            });
+        }
+
+        return data;
+    }
+
+    private List<TurbineSensorData> GenerateSyntheticTurbineData(int count)
+    {
+        var random = new Random(42);
+        var data = new List<TurbineSensorData>();
+
+        for (int i = 0; i < count; i++)
+        {
+            var isAnomaly = random.NextDouble() < 0.1;
+            data.Add(new TurbineSensorData
+            {
+                Id = i,
+                EquipmentId = 1,
+                Timestamp = DateTime.UtcNow.AddHours(-i),
+                InletPressure = 15.0 + random.NextDouble() * 3 + (isAnomaly ? random.NextDouble() * 5 : 0),
+                InletTemperature = 450.0 + random.NextDouble() * 50 + (isAnomaly ? random.NextDouble() * 80 : 0),
+                ExhaustTemperature = 550.0 + random.NextDouble() * 50 + (isAnomaly ? random.NextDouble() * 100 : 0),
+                FuelGasFlowRate = 2000.0 + random.NextDouble() * 400 + (isAnomaly ? random.NextDouble() * 600 : 0),
+                PowerOutput = 25.0 + random.NextDouble() * 5 + (isAnomaly ? -random.NextDouble() * 8 : 0),
+                Rpm = 5000.0 + random.NextDouble() * 500,
+                VibrationBearing1 = 5.0 + random.NextDouble() * 3 + (isAnomaly ? random.NextDouble() * 7 : 0),
+                VibrationBearing2 = 5.0 + random.NextDouble() * 3 + (isAnomaly ? random.NextDouble() * 7 : 0),
+                BearingTemp1 = 80.0 + random.NextDouble() * 15 + (isAnomaly ? random.NextDouble() * 25 : 0),
+                BearingTemp2 = 80.0 + random.NextDouble() * 15 + (isAnomaly ? random.NextDouble() * 25 : 0),
+                LubOilPressure = 4.0 + random.NextDouble() * 0.8 - (isAnomaly ? random.NextDouble() * 1.5 : 0),
+                ThermalEfficiency = 32.0 + random.NextDouble() * 4 - (isAnomaly ? random.NextDouble() * 8 : 0),
+                NOxEmission = 50.0 + random.NextDouble() * 20 + (isAnomaly ? random.NextDouble() * 40 : 0)
+            });
+        }
+
+        return data;
+    }
+
+    private List<MaintenanceTrainingData> GenerateMaintenanceTrainingData(int count)
+    {
+        var random = new Random(42);
+        var data = new List<MaintenanceTrainingData>();
+
+        for (int i = 0; i < count; i++)
+        {
+            var healthScore = (float)(random.NextDouble() * 100);
+            var anomalyScore = (float)(random.NextDouble() * 10);
+            var daysSinceLastMaintenance = (float)(random.NextDouble() * 365);
+            var avgVibration = (float)(random.NextDouble() * 15);
+            var avgTemperature = (float)(50 + random.NextDouble() * 50);
+            var operatingHours = (float)(random.NextDouble() * 10000);
+
+            // Calculate days to failure based on features
+            var riskFactor = (100 - healthScore) / 100.0f +
+                           anomalyScore / 10.0f +
+                           daysSinceLastMaintenance / 365.0f +
+                           avgVibration / 15.0f +
+                           (avgTemperature - 50) / 50.0f +
+                           operatingHours / 10000.0f;
+
+            var daysToFailure = Math.Max(1, 365 - (riskFactor * 180));
+
+            data.Add(new MaintenanceTrainingData
+            {
+                // Input features
+                HealthScore = healthScore,
+                AnomalyScore = anomalyScore,
+                DaysSinceLastMaintenance = daysSinceLastMaintenance,
+                AvgVibration = avgVibration,
+                AvgTemperature = avgTemperature,
+                OperatingHours = operatingHours,
+                // Output label (target)
+                DaysToFailure = (float)daysToFailure
+            });
+        }
+
+        return data;
+    }
+
+    public async Task RetrainAllModelsAsync()
+    {
+        _logger.LogInformation("Starting full model retraining...");
+        await TrainAllModelsAsync();
+        _logger.LogInformation("Model retraining completed");
+    }
+
+    public bool ValidateModelsAsync()
+    {
+        try
+        {
+            if (_pumpModel == null || _compressorModel == null || 
+                _turbineModel == null || _maintenanceModel == null)
+            {
+                _logger.LogWarning("One or more models are not loaded");
+                return false;
+            }
+
+            _logger.LogInformation("All models validated successfully");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Model validation failed");
+            return false;
+        }
     }
 }

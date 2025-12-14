@@ -7,8 +7,4 @@
     <RootNamespace>Industrial_AI_Ops.Api</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Controller\" />
-  </ItemGroup>
-
 </Project>
