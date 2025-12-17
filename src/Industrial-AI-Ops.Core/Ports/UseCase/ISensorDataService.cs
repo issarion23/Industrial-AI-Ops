@@ -7,27 +7,27 @@ namespace Industrial_AI_Ops.Core.Ports.UseCase;
 public interface ISensorDataService
 {
     Task<List<PumpSensorData>> GetPumpSensorData(
-        string? equipmentId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int limit = 1000);
+        string? equipmentId,
+        DateTime? startDate,
+        DateTime? endDate,
+        int limit);
     Task AddPumpSensorData(PumpSensorDataDto request);
     Task<AnomalyResult> DetectPumpAnomaly(string id);
 
     Task<List<CompressorSensorData>> GetCompressorSensorData(
-        string? equipmentId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int limit = 1000);
+        string? equipmentId,
+        DateTime? startDate,
+        DateTime? endDate,
+        int limit);
 
     Task AddCompressorSensorData(CompressorSensorDataDto request);
     Task<AnomalyResult> DetectCompressorAnomaly(string id);
 
     Task<List<TurbineSensorData>> GetTurbineSensorData(
-        string? equipmentId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int limit = 1000);
+        string? equipmentId,
+        DateTime? startDate,
+        DateTime? endDate,
+        int limit);
 
     Task AddTurbineSensorData(TurbineSensorDataDto request);
     Task<AnomalyResult> DetectTurbineAnomaly(string id);

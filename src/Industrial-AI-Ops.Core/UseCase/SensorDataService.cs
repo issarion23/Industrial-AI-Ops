@@ -26,10 +26,10 @@ public class SensorDataService : ISensorDataService
     }
     
     public async Task<List<PumpSensorData>> GetPumpSensorData(
-        string? equipmentId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int limit = 1000)
+        string? equipmentId,
+        DateTime? startDate,
+        DateTime? endDate,
+        int limit)
     {
         try
         {
@@ -116,10 +116,10 @@ public class SensorDataService : ISensorDataService
     }
     
     public async Task<List<TurbineSensorData>> GetTurbineSensorData(
-        string? equipmentId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int limit = 1000)
+        string? equipmentId,
+        DateTime? startDate,
+        DateTime? endDate,
+        int limit)
     {
         try
         {

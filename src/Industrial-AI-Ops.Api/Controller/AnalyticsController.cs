@@ -16,6 +16,7 @@ public class AnalyticsController : ControllerBase
     {
         _service = service;
     }
+    
     /// <summary>
     /// Get equipment health trends
     /// </summary>
@@ -23,10 +24,10 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(typeof(EquipmentHealthTrendResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<EquipmentHealthTrendResponse>> GetEquipmentHealthTrend(
-        int equipmentId, 
-        [FromQuery] int days = 30)
+        string equipmentId, 
+        int days = 30)
     {
-        var result = await _service.GetEquipmentHealthTrend();
+        var result = await _service.GetEquipmentHealthTrend(equipmentId, days);
 
         return Ok(result);
     }
