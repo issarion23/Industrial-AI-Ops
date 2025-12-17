@@ -1,4 +1,4 @@
-namespace Industrial_AI_Ops.ML.Models.Results;
+namespace Industrial_AI_Ops.Core.Models.ML.Results;
 
 public class AnomalyResult
 {

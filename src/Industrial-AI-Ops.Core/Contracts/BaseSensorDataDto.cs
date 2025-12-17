@@ -1,6 +1,8 @@
-namespace Industrial_AI_Ops.Core.Models;
+using Industrial_AI_Ops.Core.Models;
 
-public abstract class BaseSensorData
+namespace Industrial_AI_Ops.Core.Contracts;
+
+public abstract record BaseSensorDataDto
 {
     public string Id { get; set; }
     public string EquipmentId { get; set; }

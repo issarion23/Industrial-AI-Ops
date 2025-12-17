@@ -1,12 +1,13 @@
 using Industrial_AI_Ops.Core.Models;
-using Industrial_AI_Ops.ML.Models;
-using Industrial_AI_Ops.ML.Models.Results;
+using Industrial_AI_Ops.Core.Models.ML;
+using Industrial_AI_Ops.Core.Models.ML.Results;
+using Industrial_AI_Ops.Core.Ports;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 
 namespace Industrial_AI_Ops.ML;
 
-public class AnomalyDetectionService
+public class AnomalyDetectionService : IAnomalyDetectionService
 {
     private readonly MLContext _mlContext;
     private readonly ILogger<AnomalyDetectionService> _logger;
@@ -25,8 +26,11 @@ public class AnomalyDetectionService
         _logger = logger;
     }
 
-    public void LoadModels(ITransformer pumpModel, ITransformer compressorModel, 
-        ITransformer turbineModel, ITransformer? maintenanceModel = null)
+    public void LoadModels(
+        ITransformer pumpModel, 
+        ITransformer compressorModel, 
+        ITransformer turbineModel, 
+        ITransformer? maintenanceModel = null)
     {
         _pumpModel = pumpModel;
         _compressorModel = compressorModel;
@@ -404,12 +408,3 @@ public class AnomalyDetectionService
     }
 }
 
-// Additional Result Model
-public class MaintenancePredictionResult
-{
-    public float DaysToFailure { get; set; }
-    public string RiskLevel { get; set; } = string.Empty;
-    public string Priority { get; set; } = string.Empty;
-    public string RecommendedAction { get; set; } = string.Empty;
-    public float ConfidenceScore { get; set; }
-}

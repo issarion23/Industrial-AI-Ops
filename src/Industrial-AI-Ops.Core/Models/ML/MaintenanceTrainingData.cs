@@ -1,6 +1,4 @@
-using Microsoft.ML.Data;
-
-namespace Industrial_AI_Ops.ML.Models;
+namespace Industrial_AI_Ops.Core.Models.ML;
 
 /// <summary>
 /// Training data model for supervised maintenance prediction

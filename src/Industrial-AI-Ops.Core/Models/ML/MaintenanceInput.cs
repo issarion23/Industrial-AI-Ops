@@ -1,20 +1,16 @@
-using Microsoft.ML.Data;
+namespace Industrial_AI_Ops.Core.Models.ML;
 
-namespace Industrial_AI_Ops.ML.Models;
-
-public class FailurePredictionInput
+public class MaintenanceInput
 {
     public float HealthScore { get; set; }
     public float AnomalyScore { get; set; }
     public float DaysSinceLastMaintenance { get; set; }
     public float AvgVibration { get; set; }
     public float AvgTemperature { get; set; }
-    public float AvgPressure { get; set; }
     public float OperatingHours { get; set; }
 }
 
-public class FailurePrediction
+public class MaintenanceOutput
 {
     [ColumnName("Score")] public float DaysToFailure { get; set; }
-    [ColumnName("PredictedLabel")] public float RiskScore { get; set; }
 }

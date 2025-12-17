@@ -2,7 +2,7 @@ namespace Industrial_AI_Ops.Core.Models;
 
 public class Equipment
 {
-    public int Id { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public EquipmentType Type { get; set; }
     public string Location { get; set; } = string.Empty;

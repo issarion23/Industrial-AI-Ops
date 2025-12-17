@@ -1,15 +1,15 @@
 using Industrial_AI_Ops.Core.Models;
+using Industrial_AI_Ops.Core.Models.ML;
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.Repository;
 using Microsoft.ML;
-using Industrial_AI_Ops.ML.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Industrial_AI_Ops.ML;
 
-public class MlModelTrainer
+public class MlModelTrainer : IMlModelTrainer
 {
     private readonly MLContext _mlContext;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -20,6 +20,9 @@ public class MlModelTrainer
     private ITransformer? _compressorModel;
     private ITransformer? _turbineModel;
     private ITransformer? _maintenanceModel;
+    private const int PumpModelTrainDataLimit = 50000;
+    private const int CompressorModelTrainDataLimit = 50000;
+    private const int TurbineModelTrainDataLimit = 50000;
 
     public MlModelTrainer(IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<MlModelTrainer> logger)
     {
@@ -69,12 +72,9 @@ public class MlModelTrainer
         _logger.LogInformation("Training Pump anomaly detection model locally...");
 
         using var scope = _scopeFactory.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+        var repo = scope.ServiceProvider.GetRequiredService<ISensorDataRepository>();
 
-        var data = await context.PumpSensorData
-            .OrderByDescending(d => d.Timestamp)
-            .Take(50000)
-            .ToListAsync();
+        var data = await repo.GetPumpDataForTrainMlModel(PumpModelTrainDataLimit);
 
         if (data.Count < 1000)
         {
@@ -126,12 +126,9 @@ public class MlModelTrainer
         _logger.LogInformation("Training Compressor anomaly detection model locally...");
 
         using var scope = _scopeFactory.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+        var repo = scope.ServiceProvider.GetRequiredService<ISensorDataRepository>();
 
-        var data = await context.CompressorSensorData
-            .OrderByDescending(d => d.Timestamp)
-            .Take(50000)
-            .ToListAsync();
+        var data = await repo.GetCompressorDataForTrainMlModel(CompressorModelTrainDataLimit);
 
         if (data.Count < 1000)
         {
@@ -185,12 +182,9 @@ public class MlModelTrainer
         _logger.LogInformation("Training Turbine anomaly detection model locally...");
 
         using var scope = _scopeFactory.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
+        var repo = scope.ServiceProvider.GetRequiredService<ISensorDataRepository>();
 
-        var data = await context.TurbineSensorData
-            .OrderByDescending(d => d.Timestamp)
-            .Take(50000)
-            .ToListAsync();
+        var data = await repo.GetTurbineDataForTrainMlModel(TurbineModelTrainDataLimit);
 
         if (data.Count < 1000)
         {
@@ -323,8 +317,8 @@ public class MlModelTrainer
             var isAnomaly = random.NextDouble() < 0.1;
             data.Add(new PumpSensorData
             {
-                Id = i,
-                EquipmentId = 1,
+                Id = GenerateId(),
+                EquipmentId = GenerateId(),
                 Timestamp = DateTime.UtcNow.AddHours(-i),
                 SuctionPressure = 5.0 + random.NextDouble() * 2 + (isAnomaly ? random.NextDouble() * 3 : 0),
                 DischargePressure = 10.0 + random.NextDouble() * 2 + (isAnomaly ? random.NextDouble() * 4 : 0),
@@ -354,8 +348,8 @@ public class MlModelTrainer
             var isAnomaly = random.NextDouble() < 0.1;
             data.Add(new CompressorSensorData
             {
-                Id = i,
-                EquipmentId = 1,
+                Id = GenerateId(),
+                EquipmentId = GenerateId(),
                 Timestamp = DateTime.UtcNow.AddHours(-i),
                 InletPressure = 1.5 + random.NextDouble() * 0.5 + (isAnomaly ? random.NextDouble() * 0.8 : 0),
                 OutletPressure = 6.0 + random.NextDouble() * 1.0 + (isAnomaly ? random.NextDouble() * 2.0 : 0),
@@ -386,8 +380,8 @@ public class MlModelTrainer
             var isAnomaly = random.NextDouble() < 0.1;
             data.Add(new TurbineSensorData
             {
-                Id = i,
-                EquipmentId = 1,
+                Id = GenerateId(),
+                EquipmentId = GenerateId(),
                 Timestamp = DateTime.UtcNow.AddHours(-i),
                 InletPressure = 15.0 + random.NextDouble() * 3 + (isAnomaly ? random.NextDouble() * 5 : 0),
                 InletTemperature = 450.0 + random.NextDouble() * 50 + (isAnomaly ? random.NextDouble() * 80 : 0),
@@ -442,7 +436,7 @@ public class MlModelTrainer
                 AvgTemperature = avgTemperature,
                 OperatingHours = operatingHours,
                 // Output label (target)
-                DaysToFailure = (float)daysToFailure
+                DaysToFailure = daysToFailure
             });
         }
 
@@ -475,5 +469,13 @@ public class MlModelTrainer
             _logger.LogError(ex, "Model validation failed");
             return false;
         }
+    }
+    
+    private string GenerateId()
+    {
+        return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .TrimEnd('=');
     }
 }
