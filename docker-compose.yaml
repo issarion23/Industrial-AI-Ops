@@ -4,7 +4,7 @@ services:
   backend:
     build:
       context: https://github.com/issarion23/Industrial-AI-Ops.git
-      dockerfile: src/Industrial-AI-Ops/Dockerfile
+      dockerfile: Dockerfile
     container_name: industrial-ai-backend
     ports:
       - "5000:80"
