@@ -1,6 +1,8 @@
+using Microsoft.ML.Data;
+
 namespace Industrial_AI_Ops.Core.Models.ML;
 
-/// <summary>
+// <summary>
 /// Training data model for supervised maintenance prediction
 /// Combines input features with target label (DaysToFailure)
 /// </summary>
@@ -15,6 +17,7 @@ public class MaintenanceTrainingData
     public float OperatingHours { get; set; }
     
     // Target Label (for supervised learning)
+    // ВАЖНО: Используем ColumnName("Label") для ML.NET
     [ColumnName("Label")]
     public float DaysToFailure { get; set; }
 }

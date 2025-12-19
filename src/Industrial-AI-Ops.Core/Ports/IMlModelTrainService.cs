@@ -2,7 +2,7 @@ using Microsoft.ML;
 
 namespace Industrial_AI_Ops.Core.Ports;
 
-public interface IMlModelTrainer
+public interface IMlModelTrainService
 {
     bool ValidateModelsAsync();
     

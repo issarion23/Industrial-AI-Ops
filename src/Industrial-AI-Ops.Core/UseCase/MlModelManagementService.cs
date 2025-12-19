@@ -8,29 +8,29 @@ namespace Industrial_AI_Ops.Core.UseCase;
 public class MlModelManagementService : IMlModelManagementService
 {
     private readonly IAnomalyDetectionService _anomalyDetectionService;
-    private readonly IMlModelTrainer _modelTrainer;
+    private readonly IMlModelTrainService _modelTrainService;
     private readonly ILogger<MlModelManagementService> _logger;
 
-    public MlModelManagementService(IAnomalyDetectionService anomalyDetectionService, IMlModelTrainer modelTrainer, ILogger<MlModelManagementService> logger)
+    public MlModelManagementService(IAnomalyDetectionService anomalyDetectionService, IMlModelTrainService modelTrainService, ILogger<MlModelManagementService> logger)
     {
         _anomalyDetectionService = anomalyDetectionService;
-        _modelTrainer = modelTrainer;
+        _modelTrainService = modelTrainService;
         _logger = logger;
     }
     
     public MlModelStatusResponse GetModelsStatus()
     {
         var isLoaded = _anomalyDetectionService.AreModelsLoaded();
-        var isValidated = _modelTrainer.ValidateModelsAsync();
+        var isValidated = _modelTrainService.ValidateModelsAsync();
 
         return new MlModelStatusResponse
         {
             ModelsLoaded = isLoaded,
             ModelsValidated = isValidated,
-            PumpModel = _modelTrainer.GetPumpModel() != null,
-            CompressorModel = _modelTrainer.GetCompressorModel() != null,
-            TurbineModel = _modelTrainer.GetTurbineModel() != null,
-            MaintenanceModel = _modelTrainer.GetMaintenanceModel() != null,
+            PumpModel = _modelTrainService.GetPumpModel() != null,
+            CompressorModel = _modelTrainService.GetCompressorModel() != null,
+            TurbineModel = _modelTrainService.GetTurbineModel() != null,
+            MaintenanceModel = _modelTrainService.GetMaintenanceModel() != null,
             Timestamp = DateTime.UtcNow
         };
     }
@@ -39,13 +39,13 @@ public class MlModelManagementService : IMlModelManagementService
     {
         try
         {
-            await _modelTrainer.InitializeAllModelsAsync();
+            await _modelTrainService.InitializeAllModelsAsync();
             
             _anomalyDetectionService.LoadModels(
-                _modelTrainer.GetPumpModel()!,
-                _modelTrainer.GetCompressorModel()!,
-                _modelTrainer.GetTurbineModel()!,
-                _modelTrainer.GetMaintenanceModel()
+                _modelTrainService.GetPumpModel()!,
+                _modelTrainService.GetCompressorModel()!,
+                _modelTrainService.GetTurbineModel()!,
+                _modelTrainService.GetMaintenanceModel()
             );
         }
         catch (Exception exception)
@@ -59,13 +59,13 @@ public class MlModelManagementService : IMlModelManagementService
     {
         try
         {
-            await _modelTrainer.RetrainAllModelsAsync();
+            await _modelTrainService.RetrainAllModelsAsync();
             
             _anomalyDetectionService.LoadModels(
-                _modelTrainer.GetPumpModel()!,
-                _modelTrainer.GetCompressorModel()!,
-                _modelTrainer.GetTurbineModel()!,
-                _modelTrainer.GetMaintenanceModel()
+                _modelTrainService.GetPumpModel()!,
+                _modelTrainService.GetCompressorModel()!,
+                _modelTrainService.GetTurbineModel()!,
+                _modelTrainService.GetMaintenanceModel()
             );
         }
         catch (Exception ex)

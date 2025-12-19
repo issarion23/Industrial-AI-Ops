@@ -1,3 +1,4 @@
+using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,8 +21,8 @@ public class MlModelManagementController : ControllerBase
     /// Get ML models status
     /// </summary>
     [HttpGet("status")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetModelsStatus()
+    [ProducesResponseType(typeof(MlModelStatusResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<MlModelStatusResponse>> GetModelsStatus()
     {
         var result = _service.GetModelsStatus();
 

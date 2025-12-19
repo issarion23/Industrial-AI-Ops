@@ -9,11 +9,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Industrial_AI_Ops.ML;
 
-public class MlModelTrainer : IMlModelTrainer
+public class MlModelTrainService : IMlModelTrainService
 {
     private readonly MLContext _mlContext;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<MlModelTrainer> _logger;
+    private readonly ILogger<MlModelTrainService> _logger;
     private readonly string _modelsPath;
 
     private ITransformer? _pumpModel;
@@ -24,7 +24,7 @@ public class MlModelTrainer : IMlModelTrainer
     private const int CompressorModelTrainDataLimit = 50000;
     private const int TurbineModelTrainDataLimit = 50000;
 
-    public MlModelTrainer(IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<MlModelTrainer> logger)
+    public MlModelTrainService(IServiceScopeFactory scopeFactory, IConfiguration config, ILogger<MlModelTrainService> logger)
     {
         _mlContext = new MLContext(seed: 42);
         _scopeFactory = scopeFactory;
@@ -237,19 +237,21 @@ public class MlModelTrainer : IMlModelTrainer
     {
         _logger.LogInformation("Training Maintenance prediction model locally...");
 
+        // Используем MaintenanceTrainingData вместо MaintenanceInput
         var trainingData = GenerateMaintenanceTrainingData(5000);
         var mlData = _mlContext.Data.LoadFromEnumerable(trainingData);
 
+        // ВАЖНО: Используем правильное имя колонки для label
         var pipeline = _mlContext.Transforms.Concatenate("Features",
-                nameof(MaintenanceInput.HealthScore),
-                nameof(MaintenanceInput.AnomalyScore),
-                nameof(MaintenanceInput.DaysSinceLastMaintenance),
-                nameof(MaintenanceInput.AvgVibration),
-                nameof(MaintenanceInput.AvgTemperature),
-                nameof(MaintenanceInput.OperatingHours))
+                nameof(MaintenanceTrainingData.HealthScore),
+                nameof(MaintenanceTrainingData.AnomalyScore),
+                nameof(MaintenanceTrainingData.DaysSinceLastMaintenance),
+                nameof(MaintenanceTrainingData.AvgVibration),
+                nameof(MaintenanceTrainingData.AvgTemperature),
+                nameof(MaintenanceTrainingData.OperatingHours))
             .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(_mlContext.Regression.Trainers.FastTree(
-                labelColumnName: nameof(MaintenanceOutput.DaysToFailure),
+                labelColumnName: "Label",  // Используем "Label" вместо nameof
                 featureColumnName: "Features",
                 numberOfLeaves: 20,
                 numberOfTrees: 100,
@@ -417,13 +419,15 @@ public class MlModelTrainer : IMlModelTrainer
             var operatingHours = (float)(random.NextDouble() * 10000);
 
             // Calculate days to failure based on features
+            // Чем хуже параметры, тем меньше дней до отказа
             var riskFactor = (100 - healthScore) / 100.0f +
-                           anomalyScore / 10.0f +
-                           daysSinceLastMaintenance / 365.0f +
-                           avgVibration / 15.0f +
-                           (avgTemperature - 50) / 50.0f +
-                           operatingHours / 10000.0f;
+                             anomalyScore / 10.0f +
+                             daysSinceLastMaintenance / 365.0f +
+                             avgVibration / 15.0f +
+                             (avgTemperature - 50) / 50.0f +
+                             operatingHours / 10000.0f;
 
+            // Рассчитываем дни до отказа (минимум 1 день, максимум 365)
             var daysToFailure = Math.Max(1, 365 - (riskFactor * 180));
 
             data.Add(new MaintenanceTrainingData
@@ -435,11 +439,12 @@ public class MlModelTrainer : IMlModelTrainer
                 AvgVibration = avgVibration,
                 AvgTemperature = avgTemperature,
                 OperatingHours = operatingHours,
-                // Output label (target)
+                // Output label (target) - это поле будет использовано как Label
                 DaysToFailure = daysToFailure
             });
         }
 
+        _logger.LogInformation($"Generated {count} training samples for maintenance prediction");
         return data;
     }
 

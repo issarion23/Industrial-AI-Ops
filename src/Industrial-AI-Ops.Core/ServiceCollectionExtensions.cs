@@ -16,5 +16,7 @@ public static class ServiceCollectionExtensions
 
             return config;
         });
+
+        return services;
     } 
 }
