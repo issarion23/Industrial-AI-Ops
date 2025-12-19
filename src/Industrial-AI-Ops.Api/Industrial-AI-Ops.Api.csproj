@@ -21,10 +21,4 @@
     <ProjectReference Include="..\Industrial-AI-Ops.Infrastructure\Industrial-AI-Ops.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\..\.dockerignore">
-      <Link>.dockerignore</Link>
-    </Content>
-  </ItemGroup>
-
 </Project>
