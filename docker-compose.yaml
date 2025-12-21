@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: industrial-ai-backend
     ports:
-      - "5000:80"
+      - "5001:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
@@ -33,18 +33,18 @@ services:
       - industrial-network
 
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/azure-sql-edge:latest
     container_name: industrial-ai-db
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=YourStrong@Passw0rd
-      - MSSQL_PID=Express
     ports:
       - "1433:1433"
     volumes:
       - mssql-data:/var/opt/mssql
     networks:
       - industrial-network
+
 
 volumes:
   backend-models:
