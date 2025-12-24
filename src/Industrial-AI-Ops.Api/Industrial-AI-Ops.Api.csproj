@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.0.1" />
@@ -19,6 +20,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Industrial-AI-Ops.Core\Industrial-AI-Ops.Core.csproj" />
     <ProjectReference Include="..\Industrial-AI-Ops.Infrastructure\Industrial-AI-Ops.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\" />
   </ItemGroup>
 
 </Project>

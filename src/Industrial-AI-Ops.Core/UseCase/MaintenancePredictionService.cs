@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Models;
@@ -35,85 +37,87 @@ public class MaintenancePredictionService : IMaintenancePredictionService
         _anomalyDetectionService = anomalyDetectionService;
     }
 
-    public async Task<List<MaintenancePrediction>> GetMaintenancePrediction(
+    public async Task<Result<List<MaintenancePrediction>>> GetMaintenancePrediction(
         string? equipmentId = null,
         RiskLevel? riskLevel = null,
         bool? acknowledged = null)
     {
         try
         {
-            return await _repo.GetMaintenancePredictionAsync(equipmentId, riskLevel, acknowledged);
+            return ResultFactory.Success(await _repo.GetMaintenancePredictionAsync(equipmentId, riskLevel, acknowledged));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<List<MaintenancePrediction>>(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task CreateMaintenancePrediction(MaintenancePredictionDto request)
+    public async Task<Result> CreateMaintenancePrediction(MaintenancePredictionDto request)
     {
         try
         {
             await _repo.AddMaintenancePrediction(request.Adapt<MaintenancePrediction>());
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task<PredictMaintenanceResponse> PredictMaintenance(string equipmentId)
+    public async Task<Result<PredictMaintenanceResponse>> PredictMaintenance(string equipmentId)
     {
-        var equipment = await _equipmentRepo.GetEquipmentById(equipmentId);
-        
-        if (equipment == null)
-            throw new InvalidOperationException($"Equipment with ID {equipmentId} not found");
-
-        // Calculate maintenance input based on recent sensor data and equipment health
-        var input = new MaintenanceInput
-        {
-            HealthScore = (float)equipment.HealthScore,
-            AnomalyScore = await CalculateAverageAnomalyScore(equipmentId),
-            DaysSinceLastMaintenance = equipment.LastMaintenanceDate.HasValue
-                ? (float)(DateTime.UtcNow - equipment.LastMaintenanceDate.Value).TotalDays
-                : 365,
-            AvgVibration = await CalculateAverageVibration(equipmentId, equipment.Type),
-            AvgTemperature = await CalculateAverageTemperature(equipmentId, equipment.Type),
-            OperatingHours = (float)(DateTime.UtcNow - equipment.InstallationDate).TotalHours
-        };
-        
         try
         {
+            var equipment = await _equipmentRepo.GetEquipmentById(equipmentId);
+        
+            if (equipment == null)
+                throw new InvalidOperationException($"Equipment with ID {equipmentId} not found");
+
+            // Calculate maintenance input based on recent sensor data and equipment health
+            var input = new MaintenanceInput
+            {
+                HealthScore = (float)equipment.HealthScore,
+                AnomalyScore = await CalculateAverageAnomalyScore(equipmentId),
+                DaysSinceLastMaintenance = equipment.LastMaintenanceDate.HasValue
+                    ? (float)(DateTime.UtcNow - equipment.LastMaintenanceDate.Value).TotalDays
+                    : 365,
+                AvgVibration = await CalculateAverageVibration(equipmentId, equipment.Type),
+                AvgTemperature = await CalculateAverageTemperature(equipmentId, equipment.Type),
+                OperatingHours = (float)(DateTime.UtcNow - equipment.InstallationDate).TotalHours
+            };
+            
             var result = await _anomalyDetectionService.PredictMaintenanceAsync(input);
 
-            return new PredictMaintenanceResponse
+            return ResultFactory.Success(new PredictMaintenanceResponse
             {
                 EquipmentId = equipmentId,
                 EquipmentName = equipment.Name,
                 CurrentHealthScore = equipment.HealthScore,
                 Prediction = result,
                 Timestamp = DateTime.UtcNow
-            };
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Maintenance model may not be loaded yet. Message: {Message}", ex.Message);
-            throw;
+            return ResultFactory.Failure<PredictMaintenanceResponse>(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task AcknowledgePrediction(string id)
+    public async Task<Result> AcknowledgePrediction(string id)
     {
         try
         {
             await _repo.UpdateMaintenancePredictionAcknowledge(id);
+            return ResultFactory.Success();
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            _logger.LogError(e, e.Message);
+            return ResultFactory.Failure(ErrorCode.Validation, e.Message);
         }
     }
     

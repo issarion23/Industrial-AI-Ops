@@ -1,3 +1,4 @@
+using Industrial_AI_Ops.Api.Common;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Ports.UseCase;
@@ -5,14 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Industrial_AI_Ops.Api.Controller;
 
-[ApiController]
-[Route("api/v{version:apiVersion}/equipment")]
-[Produces("application/json")]
+/// <summary>
+/// 
+/// </summary>
+[Route("api/equipment")]
 [ApiVersion("1.0")]
-public class EquipmentController : ControllerBase
+public class EquipmentController : BaseController
 {
     private readonly IEquipmentService _equipmentService;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="equipmentService"></param>
     public EquipmentController(IEquipmentService equipmentService)
     {
         _equipmentService = equipmentService;
@@ -26,8 +32,8 @@ public class EquipmentController : ControllerBase
     public async Task<ActionResult<List<Equipment>>> GetAllEquipment()
     {
         var equipments = await _equipmentService.GetAllEquipment();
-        
-        return Ok(equipments);
+
+        return equipments.ToActionResult();
     }
 
     /// <summary>
@@ -39,7 +45,7 @@ public class EquipmentController : ControllerBase
     {
         var equipment = await _equipmentService.GetEquipmentById(id);
 
-        return Ok(equipment);
+        return equipment.ToActionResult();
     }
     
     /// <summary>
@@ -49,9 +55,9 @@ public class EquipmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> CreateEquipment([FromBody]EquipmentDto request)
     {
-        await _equipmentService.CreateEquipment(request);
-        
-        return Ok();
+        var result = await _equipmentService.CreateEquipment(request);
+
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -64,7 +70,7 @@ public class EquipmentController : ControllerBase
     {
         var existing = await _equipmentService.UpdateEquipment(request);
         
-        return Ok(existing);
+        return existing.ToActionResult();
     }
     
     /// <summary>
@@ -75,8 +81,8 @@ public class EquipmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteEquipment(string id)
     {
-        await _equipmentService.DeleteEquipment(id);
+        var result = await _equipmentService.DeleteEquipment(id);
         
-        return NoContent();
+        return result.ToActionResult();
     }
 }

@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.ML.Results;
@@ -25,7 +27,7 @@ public class SensorDataService : ISensorDataService
         _anomalyDetectionService = anomalyDetectionService;
     }
     
-    public async Task<List<PumpSensorData>> GetPumpSensorData(
+    public async Task<Result<List<PumpSensorData>>> GetPumpSensorData(
         string? equipmentId,
         DateTime? startDate,
         DateTime? endDate,
@@ -33,44 +35,46 @@ public class SensorDataService : ISensorDataService
     {
         try
         {
-            return await _repo.GetPumpSensorDataAsync(equipmentId, startDate, endDate, limit);
+            return ResultFactory.Success(await _repo.GetPumpSensorDataAsync(equipmentId, startDate, endDate, limit));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<List<PumpSensorData>>(ErrorCode.NotFound, ex.Message);
         }
     }
 
-    public async Task AddPumpSensorData(PumpSensorDataDto request)
+    public async Task<Result> AddPumpSensorData(PumpSensorDataDto request)
     {
         try
         {
             _repo.AddPumpSensorDataAsync(request.Adapt<PumpSensorData>());
+            
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.NotFound, ex.Message);
         }
     }
 
-    public async Task<AnomalyResult> DetectPumpAnomaly(string id)
+    public async Task<Result<AnomalyResult>> DetectPumpAnomaly(string id)
     {
         try
         {
             var data = await _repo.GetPumpSensorDataByIdAsync(id);
             
-            return await _anomalyDetectionService.DetectPumpAnomalyAsync(data);
+            return ResultFactory.Success(await _anomalyDetectionService.DetectPumpAnomalyAsync(data));
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<AnomalyResult>(ErrorCode.Validation, ex.Message);
         }
     }
     
-    public async Task<List<CompressorSensorData>> GetCompressorSensorData(
+    public async Task<Result<List<CompressorSensorData>>> GetCompressorSensorData(
         string? equipmentId = null,
         DateTime? startDate = null,
         DateTime? endDate = null,
@@ -78,44 +82,46 @@ public class SensorDataService : ISensorDataService
     {
         try
         {
-            return await _repo.GetCompressorSensorDataAsync(equipmentId, startDate, endDate, limit);
+            return ResultFactory.Success(await _repo.GetCompressorSensorDataAsync(equipmentId, startDate, endDate, limit));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<List<CompressorSensorData>>(ErrorCode.NotFound, ex.Message);
         }
     }
     
-    public async Task AddCompressorSensorData(CompressorSensorDataDto request)
+    public async Task<Result> AddCompressorSensorData(CompressorSensorDataDto request)
     {
         try
         {
             _repo.AddCompressorSensorDataAsync(request.Adapt<CompressorSensorData>());
+
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
     
-    public async Task<AnomalyResult> DetectCompressorAnomaly(string id)
+    public async Task<Result<AnomalyResult>> DetectCompressorAnomaly(string id)
     {
         try
         {
             var data = await _repo.GetCompressorSensorDataByIdAsync(id);
             
-            return await _anomalyDetectionService.DetectCompressorAnomalyAsync(data);
+            return ResultFactory.Success(await _anomalyDetectionService.DetectCompressorAnomalyAsync(data));
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<AnomalyResult>(ErrorCode.Validation, ex.Message);
         }
     }
     
-    public async Task<List<TurbineSensorData>> GetTurbineSensorData(
+    public async Task<Result<List<TurbineSensorData>>> GetTurbineSensorData(
         string? equipmentId,
         DateTime? startDate,
         DateTime? endDate,
@@ -123,40 +129,42 @@ public class SensorDataService : ISensorDataService
     {
         try
         {
-            return await _repo.GetTurbineSensorDataAsync(equipmentId, startDate, endDate, limit);
+            return ResultFactory.Success(await _repo.GetTurbineSensorDataAsync(equipmentId, startDate, endDate, limit));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<List<TurbineSensorData>>(ErrorCode.NotFound, ex.Message);
         }
     }
     
-    public async Task AddTurbineSensorData(TurbineSensorDataDto request)
+    public async Task<Result> AddTurbineSensorData(TurbineSensorDataDto request)
     {
         try
         {
             _repo.AddTurbineSensorDataAsync(request.Adapt<TurbineSensorData>());
+
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
     
-    public async Task<AnomalyResult> DetectTurbineAnomaly(string id)
+    public async Task<Result<AnomalyResult>> DetectTurbineAnomaly(string id)
     {
         try
         {
             var data = await _repo.GetTurbineSensorDataByIdAsync(id);
             
-            return await _anomalyDetectionService.DetectTurbineAnomalyAsync(data);
+            return ResultFactory.Success(await _anomalyDetectionService.DetectTurbineAnomalyAsync(data));
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<AnomalyResult>(ErrorCode.Validation, ex.Message);
         }
     }
 }

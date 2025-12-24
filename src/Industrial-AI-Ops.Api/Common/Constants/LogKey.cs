@@ -1,0 +1,9 @@
+﻿namespace Industrial_AI_Ops.Api.Common.Constants; 
+
+public static class LogKey 
+{
+    /// <summary>
+    /// Идентификатор запроса
+    /// </summary>
+    public const string RequestedWith = "RequestedWith";
+}

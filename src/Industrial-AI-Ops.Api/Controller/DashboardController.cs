@@ -1,21 +1,23 @@
+using Industrial_AI_Ops.Api.Common;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Industrial_AI_Ops.Api.Controller;
-
-[ApiController]
-[Route("api/v{version:apiVersion}/dashboard")]
-[Produces("application/json")]
+/// <summary>
+/// 
+/// </summary>
+[Route("api/dashboard")]
 [ApiVersion("1.0")]
-public class DashboardController : ControllerBase
+public class DashboardController : BaseController
 {
     private readonly IDashboardService _service;
     
-    public DashboardController(IDashboardService service)
-    {
-        _service = service;
-    }
+    /// <summary>
+    /// ctor
+    /// </summary>
+    /// <param name="service"></param>
+    public DashboardController(IDashboardService service) => _service = service;
     
     /// <summary>
     /// Get dashboard summary
@@ -26,6 +28,6 @@ public class DashboardController : ControllerBase
     {
         var result = await _service.GetDashboardSummary();
 
-        return Ok(result);
+        return result.ToActionResult();
     }
 }

@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Ports.Repository;
@@ -20,62 +22,78 @@ public class EquipmentService : IEquipmentService
         _repo = repo;
     }
 
-    public async Task<List<Equipment>> GetAllEquipment()
+    public async Task<Result<List<Equipment>>> GetAllEquipment()
     {
-        var equipment = await _repo.GetAllEquipmentAsync();
-        
-        return equipment;
-    }
-
-    public async Task<Equipment?> GetEquipmentById(string id)
-    {
-        var equipment = await _repo.GetEquipmentById(id);
-
-        if (equipment == null)
+        try
         {
-            _logger.LogError($"Equipment with ID {id} not found");
-            throw new  InvalidOperationException($"Equipment with ID {id} not found");
+            return ResultFactory.Success(await _repo.GetAllEquipmentAsync());
         }
-        
-        return equipment;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return ResultFactory.Failure<List<Equipment>>(ErrorCode.NotFound, ex.Message);
+        }
     }
 
-    public async Task CreateEquipment(EquipmentDto equipment)
+    public async Task<Result<Equipment?>> GetEquipmentById(string id)
+    {
+        try
+        {
+            var equipment = await _repo.GetEquipmentById(id);
+
+            if (equipment == null)
+            {
+                _logger.LogError($"Equipment with ID {id} not found");
+                ResultFactory.Failure<Equipment?>(ErrorCode.NotFound, $"Equipment with ID {id} not found");
+            }
+        
+            return ResultFactory.Success(equipment);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            return ResultFactory.Failure<Equipment?>(ErrorCode.NotFound, ex.Message);
+        }
+    }
+
+    public async Task<Result> CreateEquipment(EquipmentDto equipment)
     {
         try
         {
             await _repo.CreateEquipment(equipment.Adapt<Equipment>());
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task<Equipment> UpdateEquipment(EquipmentDto equipment)
+    public async Task<Result<Equipment>> UpdateEquipment(EquipmentDto equipment)
     {
         try
         {
-            return await _repo.UpdateEquipment(equipment.Adapt<Equipment>());
+            return ResultFactory.Success(await _repo.UpdateEquipment(equipment.Adapt<Equipment>()));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure<Equipment>(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task DeleteEquipment(string id)
+    public async Task<Result> DeleteEquipment(string id)
     {
         try
         {
             await _repo.RemoveEquipment(id);
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            throw;
+            return ResultFactory.Failure(ErrorCode.NotFound, ex.Message);
         }
     }
 }

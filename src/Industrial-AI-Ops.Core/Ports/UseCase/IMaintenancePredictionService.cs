@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Models;
@@ -7,14 +8,14 @@ namespace Industrial_AI_Ops.Core.Ports.UseCase;
 
 public interface IMaintenancePredictionService
 {
-    Task<List<MaintenancePrediction>> GetMaintenancePrediction(
+    Task<Result<List<MaintenancePrediction>>> GetMaintenancePrediction(
         string? equipmentId = null,
         RiskLevel? riskLevel = null,
         bool? acknowledged = null);
 
-    Task CreateMaintenancePrediction(MaintenancePredictionDto request);
+    Task<Result> CreateMaintenancePrediction(MaintenancePredictionDto request);
 
-    Task<PredictMaintenanceResponse> PredictMaintenance(string equipmentId);
+    Task<Result<PredictMaintenanceResponse>> PredictMaintenance(string equipmentId);
 
-    Task AcknowledgePrediction(string id);
+    Task<Result> AcknowledgePrediction(string id);
 }

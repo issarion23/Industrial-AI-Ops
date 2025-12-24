@@ -1,3 +1,4 @@
+using Industrial_AI_Ops.Api.Common;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.ML.Results;
@@ -6,14 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Industrial_AI_Ops.Api.Controller;
 
-[ApiController]
-[Route("api/v{version:apiVersion}/sensor-data")]
-[Produces("application/json")]
+/// <summary>
+/// 
+/// </summary>
+[Route("api/sensor-data")]
 [ApiVersion("1.0")]
-public class SensorDataController : ControllerBase
+public class SensorDataController : BaseController
 {
     private readonly ISensorDataService _service;
-
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="service"></param>
     public SensorDataController(ISensorDataService service)
     {
         _service = service;
@@ -32,7 +38,7 @@ public class SensorDataController : ControllerBase
     {
         var data = await _service.GetPumpSensorData(equipmentId, startDate, endDate, limit);
 
-        return Ok(data);
+        return data.ToActionResult();
     }
     
     /// <summary>
@@ -42,9 +48,9 @@ public class SensorDataController : ControllerBase
     [ProducesResponseType(typeof(PumpSensorData), StatusCodes.Status201Created)]
     public async Task<ActionResult<PumpSensorData>> AddPumpSensorData([FromBody] PumpSensorDataDto request)
     {
-        await _service.AddPumpSensorData(request);
+        var result = await _service.AddPumpSensorData(request);
 
-        return Ok();
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -57,7 +63,7 @@ public class SensorDataController : ControllerBase
     {
         var result = await _service.DetectPumpAnomaly(id);
 
-        return Ok(result);
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -73,7 +79,7 @@ public class SensorDataController : ControllerBase
     {
         var data = await _service.GetCompressorSensorData(equipmentId, startDate, endDate, limit);
 
-        return Ok(data);
+        return data.ToActionResult();
     }
     
     /// <summary>
@@ -83,9 +89,9 @@ public class SensorDataController : ControllerBase
     [ProducesResponseType(typeof(CompressorSensorData), StatusCodes.Status201Created)]
     public async Task<ActionResult<CompressorSensorData>> AddCompressorSensorData([FromBody] CompressorSensorDataDto request)
     {
-        await _service.AddCompressorSensorData(request);
+        var result = await _service.AddCompressorSensorData(request);
 
-        return Ok();
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -98,7 +104,7 @@ public class SensorDataController : ControllerBase
     {
         var result = await _service.DetectCompressorAnomaly(id);
 
-        return Ok(result);
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -114,7 +120,7 @@ public class SensorDataController : ControllerBase
     {
         var data = await _service.GetTurbineSensorData(equipmentId, startDate, endDate, limit);
 
-        return Ok(data);
+        return data.ToActionResult();
     }
     
     /// <summary>
@@ -124,9 +130,9 @@ public class SensorDataController : ControllerBase
     [ProducesResponseType(typeof(TurbineSensorData), StatusCodes.Status201Created)]
     public async Task<ActionResult<TurbineSensorData>> AddTurbineSensorData([FromBody] TurbineSensorDataDto request)
     {
-        await _service.AddTurbineSensorData(request);
+        var result = await _service.AddTurbineSensorData(request);
 
-        return Ok();
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -139,6 +145,6 @@ public class SensorDataController : ControllerBase
     {
         var result = await _service.DetectTurbineAnomaly(id);
 
-        return Ok(result);
+        return result.ToActionResult();
     }
 }

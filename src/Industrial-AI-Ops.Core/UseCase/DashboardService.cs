@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.Enums;
@@ -23,31 +25,41 @@ public class DashboardService : IDashboardService
         _logger = logger;
     }
 
-    public async Task<DashboardSummaryResponse> GetDashboardSummary()
+    public async Task<Result<DashboardSummaryResponse>> GetDashboardSummary()
     {
-        var totalEquipment = await _equipmentRepo.GetEquipmentCountByStatus();
-        var operationalCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Operational);
-        var warningCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Warning);
-        var criticalCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Critical);
-        var offlineCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Offline);
-
-        var criticalPredictions = await _maintenanceRepo.GetMaintenancePredictionCountByRiskLevel(RiskLevel.Critical);
-
-        var avgHealthScore = await _equipmentRepo.GetEquipmentAverageHealthScore();
-
-        return new DashboardSummaryResponse
+        try
         {
-            TotalEquipment = totalEquipment,
-            EquipmentStatus = new EquipmentStatusResponse
+            var totalEquipment = await _equipmentRepo.GetEquipmentCountByStatus();
+            var operationalCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Operational);
+            var warningCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Warning);
+            var criticalCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Critical);
+            var offlineCount = await _equipmentRepo.GetEquipmentCountByStatus(EquipmentStatus.Offline);
+
+            var criticalPredictions = await _maintenanceRepo.GetMaintenancePredictionCountByRiskLevel(RiskLevel.Critical);
+
+            var avgHealthScore = await _equipmentRepo.GetEquipmentAverageHealthScore();
+
+            var result = new DashboardSummaryResponse
             {
-                Operational = operationalCount,
-                Warning = warningCount,
-                Critical = criticalCount,
-                Offline = offlineCount
-            },
-            CriticalAlerts = criticalPredictions,
-            AverageHealthScore = Math.Round(avgHealthScore, 2),
-            Timestamp = DateTime.UtcNow
-        };
+                TotalEquipment = totalEquipment,
+                EquipmentStatus = new EquipmentStatusResponse
+                {
+                    Operational = operationalCount,
+                    Warning = warningCount,
+                    Critical = criticalCount,
+                    Offline = offlineCount
+                },
+                CriticalAlerts = criticalPredictions,
+                AverageHealthScore = Math.Round(avgHealthScore, 2),
+                Timestamp = DateTime.UtcNow
+            };
+
+            return ResultFactory.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, ex.Message);
+            return ResultFactory.Failure<DashboardSummaryResponse>(ErrorCode.NotFound, ex.Message);
+        }
     }
 }

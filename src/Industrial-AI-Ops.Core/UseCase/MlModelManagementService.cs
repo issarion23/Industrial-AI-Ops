@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Ports;
 using Industrial_AI_Ops.Core.Ports.UseCase;
@@ -18,24 +20,34 @@ public class MlModelManagementService : IMlModelManagementService
         _logger = logger;
     }
     
-    public MlModelStatusResponse GetModelsStatus()
+    public Result<MlModelStatusResponse> GetModelsStatus()
     {
-        var isLoaded = _anomalyDetectionService.AreModelsLoaded();
-        var isValidated = _modelTrainService.ValidateModelsAsync();
-
-        return new MlModelStatusResponse
+        try
         {
-            ModelsLoaded = isLoaded,
-            ModelsValidated = isValidated,
-            PumpModel = _modelTrainService.GetPumpModel() != null,
-            CompressorModel = _modelTrainService.GetCompressorModel() != null,
-            TurbineModel = _modelTrainService.GetTurbineModel() != null,
-            MaintenanceModel = _modelTrainService.GetMaintenanceModel() != null,
-            Timestamp = DateTime.UtcNow
-        };
+            var isLoaded = _anomalyDetectionService.AreModelsLoaded();
+            var isValidated = _modelTrainService.ValidateModelsAsync();
+        
+            var result = new MlModelStatusResponse
+            {
+                ModelsLoaded = isLoaded,
+                ModelsValidated = isValidated,
+                PumpModel = _modelTrainService.GetPumpModel() != null,
+                CompressorModel = _modelTrainService.GetCompressorModel() != null,
+                TurbineModel = _modelTrainService.GetTurbineModel() != null,
+                MaintenanceModel = _modelTrainService.GetMaintenanceModel() != null,
+                Timestamp = DateTime.UtcNow
+            };
+
+            return ResultFactory.Success(result);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            return ResultFactory.Failure<MlModelStatusResponse>(ErrorCode.NotFound, e.Message);
+        }
     }
 
-    public async Task InitializeModels()
+    public async Task<Result> InitializeModels()
     {
         try
         {
@@ -47,15 +59,17 @@ public class MlModelManagementService : IMlModelManagementService
                 _modelTrainService.GetTurbineModel()!,
                 _modelTrainService.GetMaintenanceModel()
             );
+
+            return ResultFactory.Success();
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            _logger.LogError(exception, "Failed to initialize models. Message: {Message}", exception.Message);
-            throw;
+            _logger.LogError(ex, "Failed to initialize models. Message: {Message}", ex.Message);
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
 
-    public async Task RetrainModels()
+    public async Task<Result> RetrainModels()
     {
         try
         {
@@ -67,11 +81,13 @@ public class MlModelManagementService : IMlModelManagementService
                 _modelTrainService.GetTurbineModel()!,
                 _modelTrainService.GetMaintenanceModel()
             );
+
+            return ResultFactory.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrain models");
-            throw;
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
 }

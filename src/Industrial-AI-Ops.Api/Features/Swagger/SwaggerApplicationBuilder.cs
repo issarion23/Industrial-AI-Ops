@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace Industrial_AI_Ops.Api.Features.Swagger;
 
@@ -15,7 +15,7 @@ public static class SwaggerApplicationBuilder
     public static IApplicationBuilder UseConfiguredSwagger(this IApplicationBuilder app)
     {
         var apiVersionDescriptionProvider = app.ApplicationServices
-            .GetRequiredService<IApiVersionDescriptionProvider>();
+                                               .GetRequiredService<IApiVersionDescriptionProvider>();
 
         app.UseDeveloperExceptionPage();
 

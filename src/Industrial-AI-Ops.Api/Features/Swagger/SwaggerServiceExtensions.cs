@@ -1,6 +1,5 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Industrial_AI_Ops.Api.Features.Swagger;
@@ -26,33 +25,6 @@ public static class SwaggerServiceExtensions
         services.AddSwaggerGen(options =>
         {
             options.AddXmlComment(typeof(AssemblyInfo).Assembly);
-            
-            // options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            // {
-            //     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-            //     Name = "Authorization",
-            //     In = ParameterLocation.Header,
-            //     Type = SecuritySchemeType.ApiKey,
-            //     Scheme = "Bearer"
-            // });
-            //
-            // options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            // {
-            //     {
-            //         new OpenApiSecurityScheme
-            //         {
-            //             Reference = new OpenApiReference
-            //             {
-            //                 Type = ReferenceType.SecurityScheme,
-            //                 Id = "Bearer"
-            //             },
-            //             Scheme = "oauth2",
-            //             Name = "Bearer",
-            //             In = ParameterLocation.Header,
-            //         },
-            //         new List<string>()
-            //     }
-            // });
         });
 
         services.AddSwaggerGenNewtonsoftSupport();

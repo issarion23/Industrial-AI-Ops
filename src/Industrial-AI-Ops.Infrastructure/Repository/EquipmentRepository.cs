@@ -80,6 +80,9 @@ public class EquipmentRepository : IEquipmentRepository
             case EquipmentStatus.Critical:
                 count = await _dbContext.Equipment.CountAsync(e => e.Status == EquipmentStatus.Critical);
                 break;
+            case EquipmentStatus.Offline:
+                count = await _dbContext.Equipment.CountAsync(e => e.Status == EquipmentStatus.Offline);
+                break;
             case null:
                 count = await _dbContext.Equipment.CountAsync();
                 break;
@@ -90,8 +93,11 @@ public class EquipmentRepository : IEquipmentRepository
         return count;
     }
 
-    public async Task<double> GetEquipmentAverageHealthScore()
+    public async ValueTask<double> GetEquipmentAverageHealthScore()
     {
+        if (!await _dbContext.Equipment.AnyAsync())
+            return 0;
+        
        return await _dbContext.Equipment.AverageAsync(e => e.HealthScore);
     }
 }

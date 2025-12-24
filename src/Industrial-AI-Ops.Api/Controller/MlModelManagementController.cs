@@ -1,17 +1,23 @@
+using Industrial_AI_Ops.Api.Common;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Industrial_AI_Ops.Api.Controller;
 
-[ApiController]
-[Route("api/v{version:apiVersion}/ml-models")]
-[Produces("application/json")]
+/// <summary>
+/// 
+/// </summary>
+[Route("api/ml-models")]
 [ApiVersion("1.0")]
-public class MlModelManagementController : ControllerBase
+public class MlModelManagementController : BaseController
 {
     private readonly IMlModelManagementService _service;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="service"></param>
     public MlModelManagementController(IMlModelManagementService service)
     {
         _service = service;
@@ -26,7 +32,7 @@ public class MlModelManagementController : ControllerBase
     {
         var result = _service.GetModelsStatus();
 
-        return Ok(result);
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -36,9 +42,9 @@ public class MlModelManagementController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeModels()
     {
-        await _service.InitializeModels();
+        var result = await _service.InitializeModels();
 
-        return Ok();
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -48,8 +54,8 @@ public class MlModelManagementController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RetrainModels()
     {
-        await _service.RetrainModels();
+        var result = await _service.RetrainModels();
 
-        return Ok();
+        return result.ToActionResult();
     }
 }

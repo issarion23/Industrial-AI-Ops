@@ -1,3 +1,4 @@
+using Industrial_AI_Ops.Api.Common;
 using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Models;
@@ -7,14 +8,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Industrial_AI_Ops.Api.Controller;
 
-[ApiController]
-[Route("api/v{version:apiVersion}/maintenance-prediction")]
-[Produces("application/json")]
+/// <summary>
+/// 
+/// </summary>
+[Route("api/maintenance-prediction")]
 [ApiVersion("1.0")]
-public class MaintenancePredictionController : ControllerBase
+public class MaintenancePredictionController : BaseController
 {
     private readonly IMaintenancePredictionService _service;
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="service"></param>
     public MaintenancePredictionController(IMaintenancePredictionService service)
     {
         _service = service;
@@ -32,7 +38,7 @@ public class MaintenancePredictionController : ControllerBase
     {
         var data = await _service.GetMaintenancePrediction(equipmentId, riskLevel, acknowledged);
 
-        return Ok(data);
+        return data.ToActionResult();
     }
     
     /// <summary>
@@ -43,9 +49,9 @@ public class MaintenancePredictionController : ControllerBase
     public async Task<ActionResult> CreateMaintenancePrediction(
         [FromBody] MaintenancePredictionDto prediction)
     {
-        await _service.CreateMaintenancePrediction(prediction);
+        var result = await _service.CreateMaintenancePrediction(prediction);
 
-        return Ok();
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -58,7 +64,7 @@ public class MaintenancePredictionController : ControllerBase
     {
         var result = await _service.PredictMaintenance(equipmentId);
 
-        return Ok(result);
+        return result.ToActionResult();
     }
     
     /// <summary>
@@ -69,7 +75,10 @@ public class MaintenancePredictionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AcknowledgePrediction(string id)
     {
-        await _service.AcknowledgePrediction(id);
+        var result = await _service.AcknowledgePrediction(id);
+
+        if (result.IsFailure)
+            return BadRequest();
 
         return Ok(new { message = "Prediction acknowledged", predictionId = id });
     }
