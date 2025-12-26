@@ -4,6 +4,8 @@ using Industrial_AI_Ops.Api.Features.Versioning;
 using Industrial_AI_Ops.Api.Features.WebApi;
 using Industrial_AI_Ops.Core;
 using Industrial_AI_Ops.Infrastructure;
+using Industrial_AI_Ops.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebHostOptions = Industrial_AI_Ops.Api.Options.WebHostOptions;
 
@@ -52,6 +54,10 @@ try
     app.UseCors("AllowFrontend");
 
     app.MapControllers();
+    
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
 
     app.Run();
 }
