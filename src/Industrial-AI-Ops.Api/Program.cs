@@ -28,7 +28,7 @@ try
         options.AddPolicy("AllowFrontend", policy =>
         {
             policy.WithOrigins("http://localhost:5173", // Vite dev server ports
-            "http://localhost:5173") // test
+            "http://localhost:3000") // test
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();

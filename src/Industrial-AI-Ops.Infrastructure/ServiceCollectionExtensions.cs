@@ -56,7 +56,9 @@ public static class ServiceCollectionExtensions
         //         });
         // });
         
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
         services.AddDbContext<AppDbContext>(options =>
-            options.UseInMemoryDatabase("IndustrialAIOps"));
+            options.UseSqlServer(connectionString));
     }
 }
