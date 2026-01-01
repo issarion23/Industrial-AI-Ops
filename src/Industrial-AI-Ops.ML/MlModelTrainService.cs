@@ -1,6 +1,7 @@
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.ML;
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.ML;
 using Industrial_AI_Ops.Core.Ports.Repository;
 using Microsoft.ML;
 using Microsoft.Extensions.Configuration;

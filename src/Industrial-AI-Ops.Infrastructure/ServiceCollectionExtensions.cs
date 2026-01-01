@@ -1,4 +1,5 @@
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.ML;
 using Industrial_AI_Ops.Core.Ports.Repository;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Industrial_AI_Ops.Core.UseCase;

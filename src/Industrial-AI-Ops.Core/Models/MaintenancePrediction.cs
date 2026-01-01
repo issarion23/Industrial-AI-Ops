@@ -1,7 +1,9 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Industrial_AI_Ops.Core.Models.Enums;
 
 namespace Industrial_AI_Ops.Core.Models;
 
+[Table("MaintenancePrediction")]
 public class MaintenancePrediction
 {
     public string Id { get; set; }

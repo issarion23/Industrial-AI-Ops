@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using Industrial_AI_Ops.Core.Common.Result;
 using Industrial_AI_Ops.Core.Contracts.Response;
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.ML;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Microsoft.Extensions.Logging;
 

@@ -2,6 +2,7 @@ using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.ML;
 using Industrial_AI_Ops.Core.Models.ML.Results;
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.ML;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 

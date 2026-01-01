@@ -10,10 +10,6 @@ public class Equipment
     public DateTime InstallationDate { get; set; }
     public DateTime? LastMaintenanceDate { get; set; }
     public double HealthScore { get; set; } = 100.0;
-    
-    public List<PumpSensorData> PumpData { get; set; } = new();
-    public List<CompressorSensorData> CompressorData { get; set; } = new();
-    public List<TurbineSensorData> TurbineData { get; set; } = new();
     public List<MaintenancePrediction> Predictions { get; set; } = new();
 }
 

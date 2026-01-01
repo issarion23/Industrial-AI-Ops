@@ -4,6 +4,7 @@ using Industrial_AI_Ops.Core.Contracts;
 using Industrial_AI_Ops.Core.Models;
 using Industrial_AI_Ops.Core.Models.ML.Results;
 using Industrial_AI_Ops.Core.Ports;
+using Industrial_AI_Ops.Core.Ports.ML;
 using Industrial_AI_Ops.Core.Ports.Repository;
 using Industrial_AI_Ops.Core.Ports.UseCase;
 using Mapster;
@@ -55,7 +56,7 @@ public class SensorDataService : ISensorDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            return ResultFactory.Failure(ErrorCode.NotFound, ex.Message);
+            return ResultFactory.Failure(ErrorCode.Validation, ex.Message);
         }
     }
 

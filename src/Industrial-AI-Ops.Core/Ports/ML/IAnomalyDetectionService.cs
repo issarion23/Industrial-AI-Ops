@@ -3,7 +3,7 @@ using Industrial_AI_Ops.Core.Models.ML;
 using Industrial_AI_Ops.Core.Models.ML.Results;
 using Microsoft.ML;
 
-namespace Industrial_AI_Ops.Core.Ports;
+namespace Industrial_AI_Ops.Core.Ports.ML;
 
 public interface IAnomalyDetectionService
 {

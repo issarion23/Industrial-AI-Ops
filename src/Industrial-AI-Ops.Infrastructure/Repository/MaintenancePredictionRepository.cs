@@ -58,6 +58,9 @@ public class MaintenancePredictionRepository : IMaintenancePredictionRepository
 
     public async Task<int> GetMaintenancePredictionCountByRiskLevel(RiskLevel riskLevel)
     {
+        if (!await _dbContext.MaintenancePredictions.AnyAsync())
+            return 0;
+        
         return await _dbContext.MaintenancePredictions
             .CountAsync(m => m.RiskLevel == RiskLevel.Critical && !m.IsAcknowledged);
     }

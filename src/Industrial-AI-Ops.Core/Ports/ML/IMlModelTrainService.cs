@@ -1,6 +1,6 @@
 using Microsoft.ML;
 
-namespace Industrial_AI_Ops.Core.Ports;
+namespace Industrial_AI_Ops.Core.Ports.ML;
 
 public interface IMlModelTrainService
 {
