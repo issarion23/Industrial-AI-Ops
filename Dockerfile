@@ -31,9 +31,4 @@ COPY --from=publish /app/publish .
 # Создаём директорию для ML моделей
 RUN mkdir -p /app/models
 
-# Устанавливаем переменные окружения
-ENV ASPNETCORE_URLS=http://+:80
-ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ModelsPath=/app/models
-
 ENTRYPOINT ["dotnet", "Industrial-AI-Ops.Api.dll"]

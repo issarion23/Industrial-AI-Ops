@@ -30,7 +30,7 @@ public class MlModelTrainService : IMlModelTrainService
         _mlContext = new MLContext(seed: 42);
         _scopeFactory = scopeFactory;
         _logger = logger;
-        _modelsPath = config["ModelsPath"] ?? "./models";
+        _modelsPath = config["MlOptions:ModelsPath"];
         
         Directory.CreateDirectory(_modelsPath);
     }

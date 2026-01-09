@@ -17,4 +17,6 @@ public class AppDbContext : DbContext
     public DbSet<TurbineSensorData> TurbineSensorData { get; set; }
     
     public DbSet<MaintenancePrediction> MaintenancePredictions { get; set; }
+    
+    public DbSet<Document> Documents { get; set; }
 }

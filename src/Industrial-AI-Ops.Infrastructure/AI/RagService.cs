@@ -1,7 +1,7 @@
+using Industrial_AI_Ops.Core.Models.LLM;
 using Industrial_AI_Ops.Core.Models.RAG;
 using Industrial_AI_Ops.Core.Ports.LLM;
 using Industrial_AI_Ops.Core.Ports.RAG;
-using RetrievedChunk = Industrial_AI_Ops.Core.Ports.RAG.RetrievedChunk;
 
 namespace Industrial_AI_Ops.Infrastructure.AI;
 
@@ -20,40 +20,44 @@ public sealed class RagService : IRagService
 
     public async Task<RagAnswer> AskAsync(string question, CancellationToken ct = default)
     {
-        var chunks = await _retriever.RetrieveAsync(question, ct);
+        // Step 1: Retrieve relevant documents
+        var retrievedChunks = await _retriever.RetrieveAsync(question, ct);
 
-        if (chunks.Count == 0)
+        if (retrievedChunks.Count == 0)
         {
             return new RagAnswer
             {
                 HasAnswer = false,
-                Answer = "Нет данных для точного ответа.",
+                Answer = "No relevant information found in the knowledge base to answer your question.",
                 Sources = new List<RagCitation>()
             };
         }
 
+        // Step 2: Convert retrieved chunks to LLM context format
         var llmRequest = new LlmRequest
         {
             Question = question,
-            Context = chunks.Select(c => new RetrievedChunk
+            Context = retrievedChunks.Select(chunk => new RetrievedChunk
             {
-                Content = c.Content,
-                Source = c.Source
+                Content = chunk.Content,
+                Source = chunk.Source
             }).ToList()
         };
 
+        // Step 3: Get answer from LLM
         var llmResult = await _llm.AskAsync(llmRequest, ct);
 
+        // Step 4: Build RAG response with citations
         return new RagAnswer
         {
             HasAnswer = llmResult.HasAnswer,
             Answer = llmResult.Answer,
-            Sources = chunks.Select(c => new RagCitation
+            Sources = retrievedChunks.Select(chunk => new RagCitation
             {
-                Source = c.Source,
-                Snippet = c.Content.Length > 300
-                    ? c.Content[..300] + "..."
-                    : c.Content
+                Source = chunk.Source,
+                Snippet = chunk.Content.Length > 300
+                    ? chunk.Content[..300] + "..."
+                    : chunk.Content
             }).ToList()
         };
     }

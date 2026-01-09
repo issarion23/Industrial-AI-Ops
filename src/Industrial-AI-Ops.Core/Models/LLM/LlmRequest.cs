@@ -1,6 +1,4 @@
-
-using Industrial_AI_Ops.Core.Ports;
-using Industrial_AI_Ops.Core.Ports.RAG;
+namespace Industrial_AI_Ops.Core.Models.LLM;
 
 public sealed class LlmRequest
 {

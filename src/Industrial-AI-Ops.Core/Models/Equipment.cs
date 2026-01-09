@@ -11,6 +11,9 @@ public class Equipment
     public DateTime? LastMaintenanceDate { get; set; }
     public double HealthScore { get; set; } = 100.0;
     public List<MaintenancePrediction> Predictions { get; set; } = new();
+    public List<PumpSensorData> PumpSensors { get; set; } = new();
+    public List<CompressorSensorData> CompressorSensors { get; set; } = new();
+    public List<TurbineSensorData> TurbineSensors { get; set; } = new();
 }
 
 public enum EquipmentType

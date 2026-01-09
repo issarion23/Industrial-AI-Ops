@@ -9,10 +9,9 @@ services:
     ports:
       - "5001:80"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Test
       - ASPNETCORE_URLS=http://+:80
-      - ConnectionStrings__DefaultConnection=Server=db;Database=IndustrialAI;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
-      - ModelsPath=/app/models
+      - ConnectionStrings__DefaultConnection=Server=localhost,1433;Database=IndustrialAI;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
     volumes:
       - backend-models:/app/models
     depends_on:

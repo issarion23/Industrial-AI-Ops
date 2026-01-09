@@ -37,7 +37,7 @@ try
         });
     });
     
-    builder.Services.ConfigureInfrastructure(builder.Configuration, builder.Environment.EnvironmentName);
+    builder.Services.ConfigureInfrastructure(builder.Configuration);
     builder.Services.ConfigureMapper();
     
     var app = builder.Build();

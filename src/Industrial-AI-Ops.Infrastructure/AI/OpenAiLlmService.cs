@@ -1,13 +1,10 @@
-using System.Runtime.CompilerServices;
 using Industrial_AI_Ops.Core.Models.LLM;
-using Industrial_AI_Ops.Core.Ports;
 using Industrial_AI_Ops.Core.Ports.LLM;
-using Industrial_AI_Ops.Infrastructure.AI;
+using Industrial_AI_Ops.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using OpenAI;
-using OpenAI.Chat;
 
-namespace IndustrialAIOps.Infrastructure.AI;
+namespace Industrial_AI_Ops.Infrastructure.AI;
 
 public sealed class OpenAiLlmService : ILlmService
 {
@@ -16,8 +13,9 @@ public sealed class OpenAiLlmService : ILlmService
 
     public OpenAiLlmService(IConfiguration config)
     {
-        var apiKey = config["OpenAI:ApiKey"];
-        _model = config["OpenAI:Model"] ?? "gpt-4.1";
+        var openAIOptions = config.GetSection(OpenAiOptions.SectionName).Get<OpenAiOptions>();
+        var apiKey = openAIOptions.ApiKey;
+        _model = openAIOptions.Model;
 
         _client = new OpenAIClient(apiKey);
     }
@@ -28,7 +26,7 @@ public sealed class OpenAiLlmService : ILlmService
 
         var messages = new List<Message>();
 
-        messages.Add(new Message(ChatRole.System, "You are an Industrial AI Ops assistant. Answer strictly based on provided context."));
+        messages.Add(new Message(ChatRole.System, PromptBuilder.BuildRagPrompt()));
 
         if (request.Context?.Any() == true)
         {

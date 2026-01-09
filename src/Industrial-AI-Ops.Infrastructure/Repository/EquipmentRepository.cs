@@ -17,7 +17,10 @@ public class EquipmentRepository : IEquipmentRepository
     public async Task<List<Equipment>> GetAllEquipmentAsync()
     {
         var equipment = await _dbContext.Equipment
-            .Include(e => e.Predictions)
+            .Include(e => e.PumpSensors.Take(1))
+            .Include(e => e.CompressorSensors.Take(1))
+            .Include(e => e.TurbineSensors.Take(1))
+            .Include(e => e.Predictions.Take(1))
             .ToListAsync();
 
         return equipment;
@@ -26,8 +29,11 @@ public class EquipmentRepository : IEquipmentRepository
     public async Task<Equipment?> GetEquipmentById(string id)
     {
         var equipment = await _dbContext.Equipment
-            .Include(e => e.Predictions)
-            .FirstOrDefaultAsync(e => e.Id == id);
+                .Include(e => e.PumpSensors.Take(1))
+                .Include(e => e.CompressorSensors.Take(1))
+                .Include(e => e.TurbineSensors.Take(1))
+                .Include(e => e.Predictions.Take(1))
+                .FirstOrDefaultAsync(e => e.Id == id);
 
         return equipment;
     }
@@ -93,7 +99,7 @@ public class EquipmentRepository : IEquipmentRepository
         return count;
     }
 
-    public async ValueTask<double> GetEquipmentAverageHealthScore()
+    public async Task<double> GetEquipmentAverageHealthScore()
     {
         if (!await _dbContext.Equipment.AnyAsync())
             return 0;

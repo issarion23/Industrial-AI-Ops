@@ -10,5 +10,5 @@ public interface IEquipmentRepository
     Task<Equipment> UpdateEquipment(Equipment equipment);
     Task RemoveEquipment(string id);
     Task<int> GetEquipmentCountByStatus(EquipmentStatus? status = null);
-    ValueTask<double> GetEquipmentAverageHealthScore();
+    Task<double> GetEquipmentAverageHealthScore();
 }
